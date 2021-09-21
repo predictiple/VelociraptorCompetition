@@ -212,7 +212,7 @@ The key things to notice about these artifacts are:
 
 2. The tool definitions ("tools" section of the artifact) are as simple as possible because we've already defined and initialised (incl. downloading) the tools during the set up process. The tool definitions here are just to ensure that these tools are available to this artifact.
 
-3. We don't mess aruond with fancy-pants unzipping of tools in our artifact. That creates unnecessary complexity and we really shouldn't be using tools in zips that have been pulled straight from Github. Download the tools, test the tools, and keep them in your Velociraptor's inventory.
+3. We don't mess aruond with fancy-pants unzipping of tools in our artifact. That creates unnecessary complexity and we really shouldn't be using tools in zips that have been pulled straight from Github. Download the tools, unzip the tools, test the tools, and store them in your Velociraptor's inventory.
 
 4. We set the artifact parameters to "hidden" because we don't intend these artifacts to be used standalone.
 
@@ -275,9 +275,11 @@ Starting from the `Custom.Client.FindByMagics` artifact:
 
 ![](images/run_findbymagics.gif)
 
-Staring from the VFS browser:
+Starting from the VFS browser:
 
 ![](images/run_vfs.gif)
+
+(p.s. sorry my gif recording software caught some jitter)
 
 ***
 
