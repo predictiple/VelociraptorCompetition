@@ -9,18 +9,18 @@
 * [Goals](#goals)
 * [What we want Velociraptor to do](#what-we-want-velociraptor-to-do)
 * [Step 0: Follow along on your own Velociraptor](#step-0-follow-along-on-your-own-velociraptor)
-  * [Artifact: <a href="https://github.com/predictiple/staging/blob/main/artifacts/Temp.Setup.Demo.yaml">Temp.Setup.Demo</a>](#artifact-tempsetupdemo)
+  * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Temp.Setup.Demo.yaml">Temp.Setup.Demo</a>](#artifact-tempsetupdemo)
 * [Step 1: Locate interesting files based on file magics (using Yara)](#step-1-locate-interesting-files-based-on-file-magics-using-yara)
-  * [Artifact: <a href="https://github.com/predictiple/staging/blob/main/artifacts/Custom.Client.FindByMagics.yaml">Custom.Client.FindByMagics</a>](#artifact-customclientfindbymagics)
+  * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.FindByMagics.yaml">Custom.Client.FindByMagics</a>](#artifact-customclientfindbymagics)
 * [Step 2: Have Velociraptor server decide what the client should do next](#step-2-have-velociraptor-server-decide-what-the-client-should-do-next)
-  * [Artifact: <a href="https://github.com/predictiple/staging/blob/main/artifacts/Custom.Server.DispatchTriage.yaml">Custom.Server.DispatchTriage</a>](#artifact-customserverdispatchtriage)
+  * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Server.DispatchTriage.yaml">Custom.Server.DispatchTriage</a>](#artifact-customserverdispatchtriage)
 * [Step 3: Send new orders to the client](#step-3-send-new-orders-to-the-client)
-  * [Artifact: <a href="https://github.com/predictiple/staging/blob/main/artifacts/Custom.Client.TriageGene.yaml">Custom.Client.TriageGene</a>](#artifact-customclienttriagegene)
-  * [Artifact: <a href="https://github.com/predictiple/staging/blob/main/artifacts/Custom.Client.TriageCapa.yaml">Custom.Client.TriageCapa</a>](#artifact-customclienttriagecapa)
+  * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.TriageGene.yaml">Custom.Client.TriageGene</a>](#artifact-customclienttriagegene)
+  * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.TriageCapa.yaml">Custom.Client.TriageCapa</a>](#artifact-customclienttriagecapa)
 * [Step 4: Have Velociraptor server decide what the client should do next](#step-4-have-velociraptor-server-decide-what-the-client-should-do-next)
-  * [Artifact: <a href="https://github.com/predictiple/staging/blob/main/artifacts/Custom.Server.DispatchUpload.yaml">Custom.Server.DispatchUpload</a>](#artifact-customserverdispatchupload)
+  * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Server.DispatchUpload.yaml">Custom.Server.DispatchUpload</a>](#artifact-customserverdispatchupload)
 * [Step X: Bonus points: Hijacking the VFS browser upload function](#step-x-bonus-points-hijacking-the-vfs-browser-upload-function)
-  * [Artifact: <a href="https://github.com/predictiple/staging/blob/main/artifacts/System.VFS.DownloadFile.yaml">System.VFS.DownloadFile</a>](#artifact-systemvfsdownloadfile)
+  * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/System.VFS.DownloadFile.yaml">System.VFS.DownloadFile</a>](#artifact-systemvfsdownloadfile)
 * [Let's see it all in action!](#lets-see-it-all-in-action)
 * [Conclusion](#conclusion)
 
@@ -101,7 +101,7 @@ Although this is a simplified and somewhat contrived example, it aims to demonst
 
 ## Step 0: Follow along on your own Velociraptor
 
-### Artifact: [`Temp.Setup.Demo`](https://github.com/predictiple/staging/blob/main/artifacts/Temp.Setup.Demo.yaml)
+### Artifact: [`Temp.Setup.Demo`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Temp.Setup.Demo.yaml)
 
 You can try this all on your own Velociraptor. You don't have to do this but you might like to see it in action on your own server. It's probably not best to do this on a production server. So it you don't have a test server you can instantly set one up by running a local-mode Velociraptor (which is both the server and client) the following command:
 
@@ -117,7 +117,7 @@ There are a few simple steps to get the artifacts and tools set up on your serve
 To do that run this VQL in a Velociraptor notebook:
 
 ```sql
-SELECT artifact_set(prefix="Temp.", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/staging/main/artifacts/Temp.Setup.Demo.yaml")
+SELECT artifact_set(prefix="Temp.", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/VelociraptorCompetition/main/artifacts/Temp.Setup.Demo.yaml")
 ```
 The result should looks something like this:
 
@@ -153,7 +153,7 @@ _Поехали!_
 
 ## Step 1: Locate interesting files based on file magics (using Yara)
 
-### Artifact: [`Custom.Client.FindByMagics`](https://github.com/predictiple/staging/blob/main/artifacts/Custom.Client.FindByMagics.yaml)
+### Artifact: [`Custom.Client.FindByMagics`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.FindByMagics.yaml)
 
 ![](images/findbymagics_parameters.png)
 
@@ -182,7 +182,7 @@ We have embedded the 2 Yara rules inside the artifact parameters, however if we 
 
 ## Step 2: Have Velociraptor server decide what the client should do next
 
-### Artifact: [`Custom.Server.DispatchTriage`](https://github.com/predictiple/staging/blob/main/artifacts/Custom.Server.DispatchTriage.yaml)
+### Artifact: [`Custom.Server.DispatchTriage`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Server.DispatchTriage.yaml)
 
 ![](images/dispatch_triage.png)
 
@@ -200,9 +200,9 @@ You can also set up your own mappings of file magics -> response artifacts. One 
 
 ## Step 3: Send new orders to the client
 
-### Artifact: [`Custom.Client.TriageGene`](https://github.com/predictiple/staging/blob/main/artifacts/Custom.Client.TriageGene.yaml)
+### Artifact: [`Custom.Client.TriageGene`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.TriageGene.yaml)
 
-### Artifact: [`Custom.Client.TriageCapa`](https://github.com/predictiple/staging/blob/main/artifacts/Custom.Client.TriageCapa.yaml)
+### Artifact: [`Custom.Client.TriageCapa`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.TriageCapa.yaml)
 
 These are probably not as good as they could be but their main purpose is to illustrate that more in-depth analysis can be scheduled on a client based on the results of a previously run artifact. This process can be iterative and involve branching logic.
 
@@ -227,7 +227,7 @@ The key things to notice about these artifacts are:
 
 ## Step 4: Have Velociraptor server decide what the client should do next
 
-### Artifact: [`Custom.Server.DispatchUpload`](https://github.com/predictiple/staging/blob/main/artifacts/Custom.Server.DispatchUpload.yaml)
+### Artifact: [`Custom.Server.DispatchUpload`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Server.DispatchUpload.yaml)
 
 The triaging artifacts in the previous step have now looked at the target files in more depth and given some sort of risk-rating or assessment based on the information in (or about) each file.
 
@@ -241,7 +241,7 @@ Similarly to Step 2, the server can now collate that information and conditional
 
 ## Step X: Bonus points: Hijacking the VFS browser upload function
 
-### Artifact: [`System.VFS.DownloadFile`](https://github.com/predictiple/staging/blob/main/artifacts/System.VFS.DownloadFile.yaml)
+### Artifact: [`System.VFS.DownloadFile`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/System.VFS.DownloadFile.yaml)
 
 ![](images/vfs.png)
 
