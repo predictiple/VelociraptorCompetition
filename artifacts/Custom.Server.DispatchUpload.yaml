@@ -1,0 +1,80 @@
+name: Custom.Server.DispatchUpload
+description: |
+  This artifact retrieves records from completed flows, groups them by the
+  unique combinations of magid_id and file_accessor.
+  
+  The MonitoredArtifacts table allows you to configure which artifact
+  completions to listen for.
+  
+  It then looks up the criticality_score in the ResponseMap lookup table in order to
+  determine which client artifacts to dispatch next, for each criticality_score type.
+
+  The dispatched client artifacts are sent a list of file targets and the
+  file accessor to use (the same one that was used when detecting their file
+  type).
+
+type: SERVER_EVENT
+
+parameters:
+  - name: MonitoredArtifacts
+    description: |
+      Client artifacts that will be monitored for completions.
+      ** Remove System.VFS.DownloadFile from this list if you DO NOT want to
+      use the modified version of that artifact which is included in this
+      demonstration set **
+    type: csv
+    default: |
+      ArtifactName
+      Custom.Client.TriageGene
+
+  - name: ResponseMap
+    description: |
+      A table of mappings that pair incoming values from the
+      Custom.Client.TriageGene artifact to reponse artifacts.
+      Any reponse artifacts that you create should accept a list of file
+      paths named "targets" and an associated "file_accessor" value.
+    type: csv
+    default: |
+      CriticalityScore,ArtifactToDispatch
+      10,Custom.Client.TriageUpload
+
+sources:
+  - query:
+      LET monitored_artifacts <= join(array=MonitoredArtifacts.ArtifactName, sep="|")
+
+      LET completions = SELECT *, client_info(client_id=ClientId).os_info.fqdn AS Fqdn
+                        FROM watch_monitoring(artifact="System.Flow.Completion")
+                        WHERE Flow.artifacts_with_results =~ monitored_artifacts
+                            AND log(message=format(format="Flow %v completed on %v",
+                                              args=[Flow.artifacts_with_results, Fqdn]))
+      
+
+      LET results(ClientId, FlowId, ArtifactId) = SELECT str(str=criticality_score) + "." + file_accessor AS idx, 
+                                                    criticality_score, file_accessor,
+                                                    ClientId as client_id, FlowId AS flow_id,
+                                                    enumerate(items=target_fullpath) AS targets,
+                                                    ArtifactId AS artifact_name
+                                                FROM source(
+                                                    client_id=ClientId,
+                                                    flow_id=FlowId,
+                                                    artifact=ArtifactId)
+                                                GROUP BY idx
+
+      SELECT * FROM foreach(row=completions,
+        query={
+            SELECT * FROM foreach(
+                row=Flow.artifacts_with_results,
+                query={ SELECT * FROM foreach(row=ResponseMap,
+                    query={
+                    SELECT *, collect_client(
+                          client_id=client_id,
+                          artifacts=ArtifactToDispatch,
+                          env=dict(targets=join(array=targets, sep="|"), file_accessor=file_accessor)
+                          ) AS dispatched_flow
+                    FROM results(ClientId=ClientId, FlowId=FlowId, ArtifactId=_value)
+                    WHERE criticality_score = CriticalityScore
+                    AND log(message=format(
+                      format="grouped result: - %v - %v - %v - %v - %v - %v",
+                      args=[idx, client_id, flow_id, artifact_name, criticality_score, file_accessor]))
+                    })}
+        )})

@@ -1,0 +1,91 @@
+name: Custom.Client.FindByMagics
+description: |
+  Identifies files via file magics using Yara.
+
+reference:
+  - https://en.wikipedia.org/wiki/Magic_number_(programming)#In_files
+
+parameters:
+  - name: search_root
+    description: |
+      The filesystem path to recusively search from.
+      This can be any path as displayed in the VFS browser.
+    default: C:\Users\
+
+  - name: search_depth
+    description: |
+      How many subdirectory levels to search (0 means the current level only)
+    type: int
+    default: 10
+
+  - name: file_accessor
+    type: hidden
+    description: |
+      The file accessor to use. Using 'file' on an NTFS drive is faster and
+      will fall back to the raw 'ntfs' accessor if the file cannot be accessed.
+    default: file
+
+  - name: target_includes
+    description: The list of regex patterns to include in the search.
+    type: csv
+    default: |
+      regexes
+      .
+
+  - name: target_excludes
+    description: The list of regex patterns to exclude from the search.
+    type: csv
+    default: |
+      regexes
+      WinSXS
+      Servicing
+
+  - name: yara_rules
+    type: hidden
+    default: |
+        rule winevtx {
+        strings:
+          $a = "ElfFile\x00" 
+        condition:
+          $a at 0
+        }
+
+        rule pe_32 {
+        condition:
+          uint16(0) == 0x5A4D and
+            uint32(uint32(0x3C)) == 0x00004550
+        }
+
+resources:
+  timeout: 3600
+
+sources:
+  - query:
+      -- Create a single regex pattern for the path includes
+      LET regex_includes <= join(array=target_includes.regexes, sep="|")
+
+      -- Create a single regex pattern for the path excludes
+      LET regex_excludes <= join(array=target_excludes.regexes, sep="|")
+
+      -- Remove possible trailing slash from search_root
+      LET search_root <= regex_replace(source=search_root, re='''[/\\]$''', replace="")
+
+      -- Switch to the ntfs accessor if the search_root is a VSS path
+      LET file_accessor <= if(condition=search_root=~"HarddiskVolumeShadowCopy",
+            then="ntfs", else=file_accessor)
+
+      -- Get a list of potential target files
+      LET targets = SELECT _FullPath AS target, Mode AS _Mode
+                     FROM Artifact.System.VFS.ListDirectory(Path=search_root, Depth=search_depth, Accessor=file_accessor)
+                     -- Mode.IsRegular doesn't seem to be available from the raw ntfs accessor, so we have to regex it to be safe
+                     WHERE NOT Mode =~ "^d"
+                     AND _FullPath =~ regex_includes 
+                     AND NOT _FullPath =~ regex_excludes
+
+      -- Check each target file for a file magic using Yara
+      SELECT * FROM foreach(
+          row=targets,
+          query={ SELECT Rule AS magic_id, FileName AS target_fullpath, file_accessor
+              FROM yara(rules=yara_rules, files=target, key="A", end=8, number=1, accessor=file_accessor)
+              LIMIT 1 }, async=true) 
+

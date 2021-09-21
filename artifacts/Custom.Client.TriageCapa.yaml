@@ -1,0 +1,55 @@
+name: Custom.Client.TriageCapa
+description: |
+  This artifact runs the Capa tool against executable files. Capa attempts
+  to determine the CAPAbilities of the target executable files.
+
+reference:
+  - Thanks to Wes Lambert for his Capa artifact which helped in developing this artifact.
+  - https://docs.velociraptor.app/exchange/artifacts/pages/windows.analysis.capa/
+
+parameters:
+  - name: targets
+    type: hidden
+  - name: file_accessor
+    type: hidden
+
+tools:
+  - name: capa-darwin-amd64
+  - name: capa-windows-amd64
+  - name: capa-linux-amd64
+
+resources:
+  timeout: 3600
+
+sources:
+
+  - precondition: SELECT * FROM info() WHERE OS =~ "windows|linux|darwin" AND Architecture = "amd64"
+    query: |
+      -- We get the host info so that we can use it to match the right tool name for each OS
+      LET host_info <= select * from info()
+
+      -- Get the version of Capa matching the OS
+      LET capa <= SELECT FullPath
+        FROM Artifact.Generic.Utils.FetchBinary(ToolName="capa-" + host_info[0].OS +"-amd64", IsExecutable=TRUE)
+
+      -- Split the list of file paths to create an array we can iterate over
+      LET file_targets <= split(string=targets, sep='''\|''')
+
+      -- Run Capa
+      LET raw_results = SELECT *, file_accessor
+                        FROM foreach(row=file_targets,
+                          query={ SELECT parse_json(data=Stdout) AS data, _value AS target FROM execve(
+                          argv=[capa[0].FullPath, "-j", path_join(components=_value)],
+                          length=1000000) },
+                        workers=1)
+
+      SELECT * FROM foreach(row=items(item=raw_results.rules[0]), query={ 
+          SELECT _key AS Rule,
+              _value.matches AS Matches,
+              get(member="_value.meta.namespace") AS Namespace,
+              get(member="_value.meta.scope") AS _Scope,
+              get(member="_value.meta.att&ck.0.tactic") AS Tactic, 
+              get(member="_value.meta.att&ck.0.technique") + " - " + get(member="_value.meta.att&ck.0.id")  AS Technique,
+              get(member="_value.meta.author") AS _Author,
+              get(member="_value.meta") AS _Meta
+          FROM scope()})

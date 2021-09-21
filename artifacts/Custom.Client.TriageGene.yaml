@@ -1,0 +1,62 @@
+name: Custom.Client.TriageGene
+description: |
+  This artifact runs the GENE (Go Evtx sigNature Engine) tool against
+  Windows evtx files.
+
+parameters:
+  - name: targets
+    type: hidden
+  - name: file_accessor
+    type: hidden
+  - name: gene_grok
+    type: hidden
+    default: >-
+      ^%{DATA:ts}: %{GREEDYDATA:event}$
+
+tools:
+  - name: gene-rules
+  - name: gene-darwin-amd64
+  - name: gene-windows-amd64
+  - name: gene-linux-amd64
+
+resources:
+  timeout: 3600
+
+sources:
+
+  - precondition: SELECT * FROM info() WHERE OS =~ "windows|linux|darwin" AND Architecture = "amd64"
+    query: |
+      -- We get the host info so that we can use it to match the right tool name for each OS
+      LET host_info <= select * from info()
+
+      -- Get the GENE rules which are all in 1 file in our inventory
+      LET rules <= SELECT FullPath
+        FROM Artifact.Generic.Utils.FetchBinary(ToolName="gene-rules", IsExecutable=FALSE)
+
+      -- Get the version of GENE matching the OS
+      LET gene <= SELECT FullPath
+        FROM Artifact.Generic.Utils.FetchBinary(ToolName="gene-" + host_info[0].OS +"-amd64", IsExecutable=TRUE)
+
+      -- Split the list of file paths to create an array we can iterate over
+      LET file_targets <= split(string=targets, sep='''\|''')
+
+      -- Run GENE
+      LET raw_results = SELECT *, file_accessor
+                        FROM foreach(row=file_targets,
+                          query={ SELECT *, _value AS target FROM execve(
+                          argv=[gene[0].FullPath, "-r", rules[0].FullPath, "-a", "-ts", path_join(components=_value)],
+                          length=1000000) },
+              workers=8)
+      
+      -- Parse the results a bit to get the event timestamp and json data
+      LET parsed_results = SELECT timestamp(epoch=Data.ts) AS timestamp,
+                                  target AS target_fullpath, file_accessor,
+                                  parse_json(data=Data.event) AS event
+                           FROM foreach(row=raw_results,
+                             query={ SELECT target, file_accessor,
+                                            grok(grok=gene_grok, data=Line) AS Data
+                                     FROM parse_lines(filename=Stdout, accessor="data")})
+
+      SELECT timestamp, event.Event.GeneInfo.Criticality AS criticality_score,
+             event.Event AS event, target_fullpath, file_accessor 
+      FROM parsed_results

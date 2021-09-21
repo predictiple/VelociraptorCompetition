@@ -1,0 +1,47 @@
+# Files to ignore by git
+
+# Back-up files
+*~
+*.swp
+
+# Generic auto-generated build files
+*.pyc
+*.pyo
+
+# Specific auto-generated build files
+/.eggs
+/.tox
+/__pycache__
+/build/
+/dist/
+/MANIFEST.test_data
+/plaso.egg-info
+
+# Auto-generated Sphinx documentation files
+/docs/_build/doctrees/
+/docs/_build/html
+/docs/_build/.doctrees/
+/docs/_build/_modules/
+/docs/_build/_sources/
+/docs/_build/_static/
+
+# Code review files
+/.review
+._code_review_number
+
+# MacOS files
+.DS_Store
+
+# Pycharm files
+/.idea
+
+# Visual Studio Code files
+/.vscode
+
+# Test files
+.coverage
+tests-coverage.txt
+
+# Vagrant files
+config/vagrant/.vagrant/
+config/vagrant/*.log

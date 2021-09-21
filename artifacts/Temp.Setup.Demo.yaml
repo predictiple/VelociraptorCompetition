@@ -1,0 +1,42 @@
+name: Temp.Setup.Demo
+description: |
+  Sets up the artifacts, tools and server monitoring needed to run this demo.
+
+reference: 
+  - https://github.com/predictiple/VelociraptorCompetition/blob/main/README.md
+
+sources:
+  - query: |
+      -- Add the tool definitions to the inventory database
+      LET _ <= SELECT inventory_add(tool="capa-darwin-amd64", url="https://github.com/predictiple/VelociraptorCompetition/raw/main/tools/capa-darwin-amd64", serve_locally=true),
+                      inventory_add(tool="capa-linux-amd64", url="https://github.com/predictiple/VelociraptorCompetition/raw/main/tools/capa-linux-amd64", serve_locally=true),
+                      inventory_add(tool="capa-windows-amd64", url="https://github.com/predictiple/VelociraptorCompetition/raw/main/tools/capa-windows-amd64", serve_locally=true),
+                      inventory_add(tool="gene-rules", url="https://github.com/predictiple/VelociraptorCompetition/raw/main/tools/compiled.gen", serve_locally=true),
+                      inventory_add(tool="gene-darwin-amd64", url="https://github.com/predictiple/VelociraptorCompetition/raw/main/tools/gene-darwin-amd64", serve_locally=true),
+                      inventory_add(tool="gene-linux-amd64", url="https://github.com/predictiple/VelociraptorCompetition/raw/main/tools/gene-linux-amd64", serve_locally=true),
+                      inventory_add(tool="gene-windows-amd64", url="https://github.com/predictiple/VelociraptorCompetition/raw/main/tools/gene-windows-amd64", serve_locally=true)
+            FROM scope()
+
+      -- Add the artifact definitions
+      LET _ <= SELECT * FROM chain(
+        FindByMagics={ SELECT artifact_set(prefix="Custom.", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/VelociraptorCompetition/main/artifacts/Custom.Client.FindByMagics.yaml") },
+        DispatchTriage={ SELECT artifact_set(prefix="Custom.", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/VelociraptorCompetition/main/artifacts/Custom.Server.DispatchTriage.yaml") },
+        TriageGene={ SELECT artifact_set(prefix="Custom.", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/VelociraptorCompetition/main/artifacts/Custom.Client.TriageGene.yaml") },
+        TriageCapa={ SELECT artifact_set(prefix="Custom.", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/VelociraptorCompetition/main/artifacts/Custom.Client.TriageCapa.yaml") },
+        DispatchUpload={ SELECT artifact_set(prefix="Custom.", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/VelociraptorCompetition/main/artifacts/Custom.Server.DispatchUpload.yaml") },
+        VFS={ SELECT artifact_set(prefix="System", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/VelociraptorCompetition/main/artifacts/System.VFS.DownloadFile.yaml") },
+        TriageUpload={ SELECT artifact_set(prefix="Custom", definition=Content) AS LoadReponse FROM http_client(url="https://raw.githubusercontent.com/predictiple/VelociraptorCompetition/main/artifacts/Custom.Client.TriageUpload.yaml") }
+        )
+
+      -- Load the server monitoring artifacts
+      LET _ <= SELECT set_server_monitoring(value='{"artifacts": ["Custom.Server.DispatchTriage", "Custom.Server.DispatchUpload"],"specs": []}') from scope()
+
+      -- Materialize the tools (downloads them to the server)
+      SELECT inventory_get(tool="capa-darwin-amd64"),
+             inventory_get(tool="capa-linux-amd64"),
+             inventory_get(tool="capa-windows-amd64"),
+             inventory_get(tool="gene-rules"),
+             inventory_get(tool="gene-darwin-amd64"),
+             inventory_get(tool="gene-linux-amd64"),
+             inventory_get(tool="gene-windows-amd64")
+      FROM scope()
