@@ -244,9 +244,9 @@ The client artifact we will dispatch here is `Custom.Server.DispatchUpload`, whi
 
 ***
 
-## Step 5: Upload high-value files based on triaging results
+## Step 5: Send new orders to the client
 
-### Artifact: [`Custom.Server.DispatchUpload`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Server.DispatchUpload.yaml)
+### Artifact: [`Custom.Client.TriageUpload`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.TriageUpload.yaml)
 
 This artifact is a simple one that just uploads the files identified by the previous steps as containing relevant information.
 
