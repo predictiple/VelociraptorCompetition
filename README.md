@@ -19,6 +19,8 @@
   * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.TriageCapa.yaml">Custom.Client.TriageCapa</a>](#artifact-customclienttriagecapa)
 * [Step 4: Have Velociraptor server decide what the client should do next](#step-4-have-velociraptor-server-decide-what-the-client-should-do-next)
   * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Server.DispatchUpload.yaml">Custom.Server.DispatchUpload</a>](#artifact-customserverdispatchupload)
+* [Step 5: Send new orders to the client](#step-5-send-new-orders-to-the-client)
+  * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.TriageUpload.yaml">Custom.Client.TriageUpload</a>](#artifact-customclienttriageupload)
 * [Step X: Bonus points: Hijacking the VFS browser upload function](#step-x-bonus-points-hijacking-the-vfs-browser-upload-function)
   * [Artifact: <a href="https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/System.VFS.DownloadFile.yaml">System.VFS.DownloadFile</a>](#artifact-systemvfsdownloadfile)
 * [Let's see it all in action!](#lets-see-it-all-in-action)
@@ -90,10 +92,13 @@ This [relatively new](https://github.com/Velocidex/velociraptor/pull/1087) featu
   * Artifact: `Custom.Client.TriageCapa`
 * Have the **server** interpret the results and create more client-side flows to do something else in response to the triaging artifacts' results. Perhaps upload these specific files back to the server to preserve evidence contained in them.
   * Artifact: `Custom.Server.DispatchUpload`
+  * Artifact: `Custom.Client.TriageUpload`
+
 * Bonus points: Hijacking the VFS browser "upload" function to allow us to kick off the above workflow from the VFS browser. :cowboy_hat_face:
   * Artifact: `System.VFS.DownloadFile`
 
-In other words: _**we want to run a single artifact and then let Velociraptor decide what the next steps should be.**_
+In a nutshell:\
+_**we want to run a single artifact and then let Velociraptor decide what the next steps should be... and then iterate that process**_
 
 Although this is a simplified and somewhat contrived example, it aims to demonstrate concepts rather than being a comprehensive realworld solution. It provides an example that can be expanded upon and repurposed quite easily.
 
@@ -235,7 +240,17 @@ Similarly to Step 2, the server can now collate that information and conditional
 
 ![](images/dispatch_upload_config.png)
 
->Note: This one doesn't quite work yet. I still have to figure out what's going wrong. "Command can only run on the server"... strange.
+The client artifact we will dispatch here is `Custom.Server.DispatchUpload`, which is described in the next step.
+
+***
+
+## Step 5: Upload high-value files based on triaging results
+
+### Artifact: [`Custom.Server.DispatchUpload`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Server.DispatchUpload.yaml)
+
+This artifact is a simple one that just uploads the files identified by the previous steps as containing relevant information.
+
+In other words, what we have accomplished is the preservation of evidence based on the actual evidence contained within the files themselves. This is a better approach than just uploading everything and _then_ checking to see what the files contain.
 
 ***
 
