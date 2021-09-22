@@ -9,7 +9,7 @@ reference:
 
 parameters:
   - name: targets
-    type: hidden
+    type: json_array
   - name: file_accessor
     type: hidden
 
@@ -32,12 +32,9 @@ sources:
       LET capa <= SELECT FullPath
         FROM Artifact.Generic.Utils.FetchBinary(ToolName="capa-" + host_info[0].OS +"-amd64", IsExecutable=TRUE)
 
-      -- Split the list of file paths to create an array we can iterate over
-      LET file_targets <= split(string=targets, sep='''\|''')
-
       -- Run Capa
       LET raw_results = SELECT *, file_accessor
-                        FROM foreach(row=file_targets,
+                        FROM foreach(row=targets,
                           query={ SELECT parse_json(data=Stdout) AS data, _value AS target FROM execve(
                           argv=[capa[0].FullPath, "-j", path_join(components=_value)],
                           length=1000000) },

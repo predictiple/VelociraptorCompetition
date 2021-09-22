@@ -5,7 +5,7 @@ description: |
 
 parameters:
   - name: targets
-    type: hidden
+    type: json_array
   - name: file_accessor
     type: hidden
   - name: gene_grok
@@ -37,12 +37,9 @@ sources:
       LET gene <= SELECT FullPath
         FROM Artifact.Generic.Utils.FetchBinary(ToolName="gene-" + host_info[0].OS +"-amd64", IsExecutable=TRUE)
 
-      -- Split the list of file paths to create an array we can iterate over
-      LET file_targets <= split(string=targets, sep='''\|''')
-
       -- Run GENE
       LET raw_results = SELECT *, file_accessor
-                        FROM foreach(row=file_targets,
+                        FROM foreach(row=targets,
                           query={ SELECT *, _value AS target FROM execve(
                           argv=[gene[0].FullPath, "-r", rules[0].FullPath, "-a", "-ts", path_join(components=_value)],
                           length=1000000) },
