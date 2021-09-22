@@ -5,31 +5,19 @@ description: |
 
 parameters:
   - name: targets
+    type: json_array
   - name: file_accessor
 
 sources:
 
-  - query: |
-      LET dedupe(thislist) = starl(code='''
-      def unique(list1):
-          unique_list = []
-          for x in list1:
-              if x not in unique_list:
-                  unique_list.append(x)
-          return unique_list
-      ''')
-      
-      LET file_targets <= split(string=targets, sep='''\|''')
-
-      LET unique_file_targets <= dedupe.unique(thislist=file_targets)
-
-      LET download_files = SELECT *, file_accessor
-                           FROM foreach(row=unique_file_targets,
-                                        query={ SELECT path_join(components=_value) AS Path,
+  - query: |    
+      LET upload_files = SELECT *, file_accessor
+                           FROM foreach(row=targets,
+                                        query={ SELECT _value AS Path,
                                                   file_accessor AS Accessor,
-                                                  Size, upload(file=path_join(components=_value),
+                                                  Size, upload(file=_value,
                                                         accessor=file_accessor) AS Upload
-                                                FROM stat(filename=path_join(components=_value),
+                                                FROM stat(filename=_value,
                                                         accessor=file_accessor) } )
 
       SELECT Path, Accessor,
@@ -37,5 +25,5 @@ sources:
             Upload.StoredSize AS StoredSize,
             Upload.Sha256 AS Sha256,
             Upload.Md5 AS Md5
-      FROM download_files
+      FROM upload_files
 

@@ -40,6 +40,15 @@ parameters:
 
 sources:
   - query:
+      LET dedupe = starl(code='''
+      def unique(list1):
+          unique_list = []
+          for x in list1:
+              if x not in unique_list:
+                  unique_list.append(x)
+          return unique_list
+      ''')
+      
       LET monitored_artifacts <= join(array=MonitoredArtifacts.ArtifactName, sep="|")
 
       LET completions = SELECT *, client_info(client_id=ClientId).os_info.fqdn AS Fqdn
@@ -69,7 +78,7 @@ sources:
                     SELECT *, collect_client(
                           client_id=client_id,
                           artifacts=ArtifactToDispatch,
-                          env=dict(targets=join(array=targets, sep="|"), file_accessor=file_accessor)
+                          env=dict(targets=serialize(item=dedupe.unique(list1=targets), format="json"), file_accessor=file_accessor)
                           ) AS dispatched_flow
                     FROM results(ClientId=ClientId, FlowId=FlowId, ArtifactId=_value)
                     WHERE criticality_score = CriticalityScore
