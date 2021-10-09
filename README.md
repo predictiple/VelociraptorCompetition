@@ -209,7 +209,7 @@ In order to achieve deduplication of the list of targets we have used Velocirapt
 
 ![](images/starl.png)
 
-[https://github.com/google/starlark-go](Starlark) is a dialect of Python. We've used it here because Velociraptor doesn't currently have a function to deduplicate a list of values. So we've just given VQL a new capability, and it's very cool to be able to that "on the fly" through the `starl()` function.
+[Starlark](https://github.com/google/starlark-go) is a dialect of Python. We've used it here because Velociraptor doesn't currently have a function to deduplicate a list of values. So we've just given VQL a new capability, and it's very cool to be able to that "on the fly" through the `starl()` function.
 
 To make things configurable we have used artifact parameters for the list of monitored artifacts as well as for the item-level input->output pairing ("Response Mapping"). So you can add or remove monitored artifacts very easily without changing the artifact's code.
 
