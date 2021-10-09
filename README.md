@@ -61,11 +61,11 @@ In a nutshell: client artifacts and server artifacts can dance together. Client 
 \
 This allows Velociraptor artifacts to call other artifacts... which can then call other artifacts... and so on. With some careful planning this allows us to construct artifacts with branching logic to other (reusable) artifacts. This plugin also allows us to call a series of artifacts from one parent artifact, and perhaps have several layers of artifacts below the child artifact. This arrangement of logically related artifacts can amount to a sort of "playbook" where artifacts are invoked automatically rather than being run independently and manually.\
 \
-Recently it [became possible](https://github.com/Velocidex/velociraptor/issues/1235#issuecomment-915721425) to use preconditions in artifacts that are called by other artifacts. This allows us to have artifacts that can adapt themselves to their environment or the data. In this demo we use that approach to have unified triage artifacts that will run equally well on Windows, Mac and Linux.\
-
+Recently it [became possible](https://github.com/Velocidex/velociraptor/issues/1235#issuecomment-915721425) to use preconditions in artifacts that are called by other artifacts. This allows us to have artifacts that can adapt themselves to their environment or the data. In this demo we use that approach to have unified triage artifacts that will run equally well on Windows, Mac and Linux.
+\
 * *export/imports*\
 \
-This [relatively new](https://github.com/Velocidex/velociraptor/pull/1087) feature allows artifacts to share blocks of code, including VQL, with other artifacts. Some of the current bundled artifacts are overloaded with huge reference lists and signature definitions. Artifacts such as these could benefit by having their weighty reference components allocated to dedicated artifacts which don't have any VQL queries. These artifacts would then significantly cut down the size of some existing artifacts and again it is something that facilitates code-sharing across artifacts. In this demo we'll use a dedicated artifact to store a corpus of evtx detection rules.\
+This [relatively new](https://github.com/Velocidex/velociraptor/pull/1087) feature allows artifacts to share blocks of code, including VQL, with other artifacts. Some of the current bundled artifacts are overloaded with huge reference lists and signature definitions. Artifacts such as these could benefit by having their weighty reference components allocated to dedicated artifacts which don't have any VQL queries. These artifacts would then significantly cut down the size of some existing artifacts and again it is something that facilitates code-sharing across artifacts.
 <br/><br/>
 
 3. The 3rd goal is to demonstrate that artifacts can be easily created to support multiple platforms, as mentioned above. Although this demonstration targets Windows files it does not require that the processing be done _on_ a Windows system. That means that it can also be used for "offline" processing of Windows files collected via external mechanisms (for example Kroll's KAPE collection tool or disk images).
@@ -74,7 +74,7 @@ This [relatively new](https://github.com/Velocidex/velociraptor/pull/1087) featu
 4. The 4th goal is to demonstrate a setup artifact that loads artifacts, tools and server monitoring tasks in 2 easy steps.
 <br/><br/>
 
-5. The 5th goal is to shows that RawSec GENE is a far superior evtx triaging tool to Countercept's Chainsaw. I hope more people start using it and support the tool's author, [Quentin Jerome](https://github.com/qjerome), who has put years into it's development and it's sibling DFIR tools that are very under-appreciated.
+5. The 5th goal is to show that RawSec GENE is an excellent evtx triaging/analysis tool. I hope that more DFIR people start using it and support the tool's author, [Quentin Jerome](https://github.com/qjerome), who has put years into it's development and it's sibling open-source DFIR tools that are very much under-appreciated.
 <br/><br/>
 
 ***
@@ -108,7 +108,7 @@ Although this is a simplified and somewhat contrived example, it aims to demonst
 
 ### Artifact: [`Temp.Setup.Demo`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Temp.Setup.Demo.yaml)
 
-You can try this all on your own Velociraptor. You don't have to do this but you might like to see it in action on your own server. It's probably not best to do this on a production server. So it you don't have a test server you can instantly set one up by running a local-mode Velociraptor (which is both the server and client) the following command:
+You can try this all on your own Velociraptor. You don't have to do this but you might like to see it in action on your own server. _It's probably not best to do this on a production server_, So if you don't have a test server you can instantly set one up by running a local-mode Velociraptor (which is both the server and client) with the following command:
 
 ```shell
 velociraptor-v0.6.1-windows-amd64.exe gui
@@ -128,7 +128,13 @@ The result should looks something like this:
 
 ![](images/load_demo.png)
 
-2. Then run the demo artifact which will install the other artifacts, download the tools to your server's inventory and load the server monitoring artifacts. Run this VQL this in a Velociraptor notebook to run the artifact (be aware that this one may take a minute or two):
+2. Then run the demo artifact which will:
+
+* install the other artifacts
+* download the tools to your server's inventory, and
+* load the server monitoring artifacts.
+
+Run this VQL this in a Velociraptor notebook to run the artifact (be aware that this one may take a minute or two because it downloads the tool binaries to your server):
 
 ```sql
 SELECT * from Artifact.Temp.Setup.Demo()
@@ -173,7 +179,7 @@ But for the purpose of keeping this demonstration as concise as possible we will
 In addition to freeing us up from the annoying dependency on path specifications, this approach also allows us to target files that have had their file extension changed or removed. As mentioned previously, having our targeting done independent of file paths and/or file names allows us to deal with the "offline data" use case more easily. And as a bonus it also makes things relatively platform-independent.
 
 > Note:\
-More fancy filtering could be implemented but we're trying to keep it simple. The goal of this artifact is to identify relevant files and report back with their path. Subsequent artifacts could apply additional targetting logic based on things like timestamps or file content for example. In this case we are going to do more in-depth analysis with [GENE](https://github.com/0xrawsec/gene) and [CAPA](https://github.com/fireeye/capa) and use these tools to identify a subset of files that are more significant than the rest.
+More fancy filtering could be implemented but we're trying to keep it simple. The goal of this artifact is to identify relevant files and report back with their path. Subsequent artifacts could apply additional targeting logic based on things like timestamps or file content for example. In this case we are going to do more in-depth analysis with [GENE](https://github.com/0xrawsec/gene) and [CAPA](https://github.com/fireeye/capa) and use these tools to identify a subset of files that are more significant than the rest.
 <br/><br/>
 
 ![](images/yara_rules.png)
@@ -181,7 +187,7 @@ More fancy filtering could be implemented but we're trying to keep it simple. Th
 We have embedded the 2 Yara rules inside the artifact parameters, however if we needed to use a more extensive list of Yara rules then would be impractical to put them inside the artifact definition. In that situation there are several alternatives:
 1. store the rules in a separate file that could be added to the Velociraptor tool inventory and treated as a non-executable tool.
 2. host a rules file on a web server and retrieve it on the client using the `http_client()` function. 
-3. store the rules in a dedicated artifact and export it using the [export/imports](https://github.com/Velocidex/velociraptor/pull/1087) feature. This approach apparently doesn't work when the `exports` section is in an artifact which is being called from another artifact using the Artifacts plugin, so it would not work if we called `Custom.Client.FindByMagics` from `System.VFS.DownloadFile` via the VFS browser GUI. I should probably log an issue about that... anyway for that reason we have just kept it simple and embedded the 2 rules as an artifact parameter.
+3. store the rules in a dedicated artifact and export it using the [export/imports](https://github.com/Velocidex/velociraptor/pull/1087) feature. ~~This approach apparently doesn't work when the `exports` section is in an artifact which is being called from another artifact using the Artifacts plugin, so it would not work if we called `Custom.Client.FindByMagics` from `System.VFS.DownloadFile` via the VFS browser GUI. I should probably log an issue about that...~~ (note: this is fixed in [https://github.com/Velocidex/velociraptor/pull/1299](#1299), so it will be possible from v0.6.2). anyway for that reason we have just kept it simple and embedded the 2 rules as an artifact parameter.
 
 ***
 
@@ -199,7 +205,13 @@ This artifact runs as a server-side monitoring artifact and listens for flow com
 
 ![](images/targets_list.png)
 
-To make things configurable we have used artifact parameters for the list of monitored artifacts as well as for the item-level input->output pairing (Response Mapping). So you can add or remove monitored artifacts very easily without changing the artifact's code.
+In order to achieve deduplication of the list of targets we have used Velociraptor's `starl()` function which allows us to define a simple deduplicate function using Python code:
+
+![](images/starl.png)
+
+[https://github.com/google/starlark-go](Starlark) is a dialect of Python. We've used it here because Velociraptor doesn't currently have a function to deduplicate a list of values. So we've just given VQL a new capability, and it's very cool to be able to that "on the fly" through the `starl()` function.
+
+To make things configurable we have used artifact parameters for the list of monitored artifacts as well as for the item-level input->output pairing ("Response Mapping"). So you can add or remove monitored artifacts very easily without changing the artifact's code.
 
 You can also set up your own mappings of file magics -> response artifacts. One MagidID value can map to more than 1 dispatched artifact (one-to-many), so it is possible to have 2 or more types of analysis (via their own independent artifacts) run in response to a particular file type being identified. It's also possible to have multiple MagicID values map to the same dispatched artifact (many-to-one), for example if the dispatched artifact performed some format-independent function such as uploading the target files to the server.
 
@@ -209,19 +221,19 @@ You can also set up your own mappings of file magics -> response artifacts. One 
 
 ### Artifact: [`Custom.Client.TriageCapa`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Custom.Client.TriageCapa.yaml)
 
-These are probably not as good as they could be but their main purpose is to illustrate that more in-depth analysis can be scheduled on a client based on the results of a previously run artifact. This process can be iterative and involve branching logic.
+These artifacts are probably not as good as they could be, but their main purpose is to illustrate that more in-depth analysis can be scheduled on a client based on the results of a previously run artifact. This process can be iterative and involve branching logic.
 
 The key things to notice about these artifacts are:
 
 1. They are multi-platform. So they can be run on the 3 main operating systems without OS-specific targetting. They can also work on "offline" data, where files from 1 operating system are being processed on a different operating system.
 
-2. The tool definitions ("tools" section of the artifact) are as simple as possible because we've already defined and initialised (incl. downloading) the tools during the set up process. The tool definitions here are just to ensure that these tools are available to this artifact.
+2. The tool definitions ("tools" section of the artifact) are as simple as possible because we've already defined and initialised (incl. downloading) the tools during the setup process. The tool definitions here are just to ensure that these tools are available to this artifact.
 
-3. We don't mess aruond with fancy-pants unzipping of tools in our artifact. That creates unnecessary complexity and we really shouldn't be using tools in zips that have been pulled straight from Github. Download the tools, unzip the tools, test the tools, and store them in your Velociraptor's inventory.
+3. We don't mess around with fancy-pants unzipping of tools in our artifact. Several of the Velociraptor-bundled artifacts download zipped tools from Github and then unzip them on the client. This is done for user-convenience but it creates unnecessary complexity in the artifact, plus we really shouldn't be using tools in zips that have been pulled straight from Github. It's better to download the tools, unzip the tools, test/validate the tools, and then store them in your Velociraptor's inventory. This approach also means that your endpoints don't need access to Github because all the tools will be pulled from the Velociraptor server.
 
 4. We set the artifact parameters to "hidden" because we don't intend these artifacts to be used standalone.
 
-5. We give them a generous timeout because we could be targetting a large set of files that were collected and are now being analysed "offline". Also Capa is written in Python and slow as molasses.
+5. We give them a generous timeout because we could be targetting a large set of files that were previously collected and are now being analysed "offline". Also Capa is written in Python and slow as molasses.
 <br/><br/>
 
 >Note: Windows Defender will probably prevent Capa from running. You may need to temporarily disable it's realtime protection option or else add a realtime scanning exclusion for the folder your testing on.
@@ -250,7 +262,7 @@ The client artifact we will dispatch here is `Custom.Server.DispatchUpload`, whi
 
 This artifact is a simple one that just uploads the files identified by the previous steps as containing relevant information.
 
-In other words, what we have accomplished is the preservation of evidence based on the actual evidence contained within the files themselves. This is a better approach than just uploading everything and _then_ checking to see what the files contain.
+In other words, what we have accomplished is **the preservation of evidence based on the actual evidence contained within the files themselves**. This is a better approach than just uploading everything and _then_ checking to see what the files contain.
 
 ***
 
@@ -266,7 +278,7 @@ This artifact provides 2 functions which are invoked by 2 buttons in the VFS GUI
 * "download_one_file"
 * "download_recursive"
 
-We would like to be able to browse around on the client machine and when we find an interesting folder we want to be able to click a button and let Velociraptor do the rest! Do do that we are going to have to hijack one of those buttons. The "Download Recursive" button and corresponding VQL artifact's function seems to be the best match for our purposes since we want to target a folder and do stuff recursively with the files in that folder.
+We would like to be able to browse around on the client machine and when we find an interesting folder we want to be able to click a button and let Velociraptor do the rest! To do that we are going to have to hijack one of those buttons. The "Download Recursive" button and corresponding VQL artifact's function seems to be the best match for our purposes since we want to target a folder and do stuff recursively with the files in that folder.
 
 > NOTE: It sucks that we need to hijack a built-in "system" artifact to do this, and we feel really bad about doing it (well not really), but at present there are no "custom function" buttons available in the VFS browser GUI. So for now we do this with full knowledge that it is frowned upon and that we are subverting functionality which may be needed for other purposes. 
 
@@ -276,7 +288,7 @@ In the `System.VFS.DownloadFile` artifact we've replaced the `download_recursive
 
 ![](images/vfs_downloadfile.png)
 
-We also added the 1-hour timeout into the artifact so that it's behaviour is consistent with the timeout of the `Custom.Client.FindByMagics` artifact. Finding files can take a long time, so this is just to avoid frustrating timeouts - it should rarely take anything as long as an hour.
+We also added the 1-hour timeout into the artifact so that it's behaviour is consistent with the timeout of the `Custom.Client.FindByMagics` artifact. Finding files can take a long time, so this is just to avoid frustrating timeouts - however it should rarely take anything as long as an hour.
 
 ![](images/vfs_download_recursive.png)
 
