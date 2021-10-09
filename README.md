@@ -62,7 +62,7 @@ In a nutshell: client artifacts and server artifacts can dance together. Client 
 This allows Velociraptor artifacts to call other artifacts... which can then call other artifacts... and so on. With some careful planning this allows us to construct artifacts with branching logic to other (reusable) artifacts. This plugin also allows us to call a series of artifacts from one parent artifact, and perhaps have several layers of artifacts below the child artifact. This arrangement of logically related artifacts can amount to a sort of "playbook" where artifacts are invoked automatically rather than being run independently and manually.\
 \
 Recently it [became possible](https://github.com/Velocidex/velociraptor/issues/1235#issuecomment-915721425) to use preconditions in artifacts that are called by other artifacts. This allows us to have artifacts that can adapt themselves to their environment or the data. In this demo we use that approach to have unified triage artifacts that will run equally well on Windows, Mac and Linux.
-\
+
 * *export/imports*\
 \
 This [relatively new](https://github.com/Velocidex/velociraptor/pull/1087) feature allows artifacts to share blocks of code, including VQL, with other artifacts. Some of the current bundled artifacts are overloaded with huge reference lists and signature definitions. Artifacts such as these could benefit by having their weighty reference components allocated to dedicated artifacts which don't have any VQL queries. These artifacts would then significantly cut down the size of some existing artifacts and again it is something that facilitates code-sharing across artifacts.
