@@ -77,9 +77,7 @@ This [relatively new](https://github.com/Velocidex/velociraptor/pull/1087) featu
 5. The 5th goal is to show that RawSec GENE is an excellent evtx triaging/analysis tool. I hope that more DFIR people start using it and support the tool's author, [Quentin Jerome](https://github.com/qjerome), who has put years into it's development and it's sibling open-source DFIR tools that are very much under-appreciated.
 <br/><br/>
 
-6. The sixth goal is demonstrating how the Velociraptor `starl()` function allows us to instantly add functionality to VQL. This amazing capability was contributed by Velociraptor community member [Clay Norris](https://github.com/clayscode). 
-
-![](images/clay.gif)
+6. The sixth goal is demonstrating how the Velociraptor `starl()` function allows us to instantly add functionality to VQL. This amazing capability was contributed by Velociraptor community member [Clay Norris](https://github.com/clayscode). ![](images/clay.gif)
 
 ***
 
