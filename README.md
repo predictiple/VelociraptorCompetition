@@ -78,6 +78,7 @@ This [relatively new](https://github.com/Velocidex/velociraptor/pull/1087) featu
 <br/><br/>
 
 6. The sixth goal is demonstrating how the Velociraptor `starl()` function allows us to instantly add functionality to VQL. This amazing capability was contributed by Velociraptor community member [Clay Norris](https://github.com/clayscode). ![](images/clay.gif)
+<br/><br/>
 
 ***
 
