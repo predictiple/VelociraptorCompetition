@@ -108,7 +108,7 @@ Although this is a simplified and somewhat contrived example, it aims to demonst
 
 ### Artifact: [`Temp.Setup.Demo`](https://github.com/predictiple/VelociraptorCompetition/blob/main/artifacts/Temp.Setup.Demo.yaml)
 
-You can try this all on your own Velociraptor. You don't have to do this but you might like to see it in action on your own server. _It's probably not best to do this on a production server_, So if you don't have a test server you can instantly set one up by running a local-mode Velociraptor (which is both the server and client) with the following command:
+You can try this all on your own Velociraptor. You don't have to do this but you might like to see it in action on your own server. _It's probably not best to do this on a production server_, so if you don't have a test server you can instantly set one up by running a local-mode Velociraptor (which is both the server and client) with the following command:
 
 ```shell
 velociraptor-v0.6.1-windows-amd64.exe gui
@@ -187,7 +187,7 @@ More fancy filtering could be implemented but we're trying to keep it simple. Th
 We have embedded the 2 Yara rules inside the artifact parameters, however if we needed to use a more extensive list of Yara rules then would be impractical to put them inside the artifact definition. In that situation there are several alternatives:
 1. store the rules in a separate file that could be added to the Velociraptor tool inventory and treated as a non-executable tool.
 2. host a rules file on a web server and retrieve it on the client using the `http_client()` function. 
-3. store the rules in a dedicated artifact and export it using the [export/imports](https://github.com/Velocidex/velociraptor/pull/1087) feature. ~~This approach apparently doesn't work when the `exports` section is in an artifact which is being called from another artifact using the Artifacts plugin, so it would not work if we called `Custom.Client.FindByMagics` from `System.VFS.DownloadFile` via the VFS browser GUI. I should probably log an issue about that...~~ (note: this is fixed in [https://github.com/Velocidex/velociraptor/pull/1299](#1299), so it will be possible from v0.6.2). anyway for that reason we have just kept it simple and embedded the 2 rules as an artifact parameter.
+3. store the rules in a dedicated artifact and export it using the [export/imports](https://github.com/Velocidex/velociraptor/pull/1087) feature. ~~This approach apparently doesn't work when the `exports` section is in an artifact which is being called from another artifact using the Artifacts plugin, so it would not work if we called `Custom.Client.FindByMagics` from `System.VFS.DownloadFile` via the VFS browser GUI. I should probably log an issue about that...~~ _(note: this is fixed in [#1299](https://github.com/Velocidex/velociraptor/pull/1299), so it will be possible to di it this way starting from v0.6.2)_ anyway for that reason we have just kept it simple and embedded the 2 rules as an artifact parameter.
 
 ***
 
